@@ -15,18 +15,20 @@ public class Main {
         ArrayList<Student> studenti = citesteStudentiDinCsv("studenti.csv");
         Map<String, Integer> note = citireNote("Note.csv");
 
+        Map<Student, Integer> noteStudenti = createMap(studenti, note);
+
         index(studenti);
 
         System.out.println("Lista studentilor:");
         for (Student s : studenti) {
-            System.out.println(s + " | numar matricol: " + s.numarMatricol + " | nota: " + nota(note, s));
+            System.out.println(s + " | numar matricol: " + s.numarMatricol + " | nota: " + printNota(noteStudenti, s));
         }
 
-        Student cautat = new Student("123", "Gabi", "Paun", "C22/1");
+        Student s = new Student(null, "Alex", "Doc0b", "C22/1");
 
-        if (estePrezent(studenti, cautat)) {
+        if (estePrezent(studenti, s)) {
             System.out.println("Studentul este prezent in lista.");
-            System.out.println("Numar matricol: " + cautat.numarMatricol + " | nota: " + nota(note, cautat));
+            System.out.println("Numar matricol: " + s.numarMatricol + " | nota: " + printNota(noteStudenti, s));
         } else {
             System.out.println("Studentul NU este prezent in lista.");
         }
@@ -57,10 +59,8 @@ public class Main {
                 String nume = campuri[2].trim();
                 String formatieDeStudiu = campuri[3].trim();
 
-                Student student = new Student(numarMatricol, prenume, nume, formatieDeStudiu);
-                studenti.add(student);
+                studenti.add(new Student(numarMatricol, prenume, nume, formatieDeStudiu));
             }
-
         } catch (IOException e) {
             System.out.println("Eroare la citirea fisierului: " + e.getMessage());
         }
@@ -99,16 +99,31 @@ public class Main {
         return note;
     }
 
-    static int nota(Map<String, Integer> note, Student student) {
-        Integer valoare = note.get(student.numarMatricol);
-        if (valoare == null) {
-            return -1;
+    static Map<Student, Integer> createMap(ArrayList<Student> studenti, Map<String, Integer> note) {
+        Map<Student, Integer> noteStudenti = new HashMap<>();
+
+        for (Student student : studenti) {
+            noteStudenti.put(student, nota(note, student));
         }
-        return valoare;
+
+        return noteStudenti;
+    }
+
+    static Integer nota(Map<String, Integer> note, Student student) {
+        return note.get(student.numarMatricol);
+    }
+
+    static String printNota(Map<Student, Integer> noteStudenti, Student student) {
+        Integer valoare = noteStudenti.get(student);
+        if (valoare == null) {
+            return "fara nota";
+        }
+        return String.valueOf(valoare);
     }
 
     static void index(ArrayList<Student> studenti) {
         Collections.sort(studenti, new Comparator<Student>() {
+            @Override
             public int compare(Student s1, Student s2) {
                 if (s1.formatieDeStudiu.equals(s2.formatieDeStudiu)) {
                     if (s1.nume.equals(s2.nume)) {
