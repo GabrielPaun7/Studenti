@@ -18,6 +18,7 @@ public class Main {
         Map<Student, Integer> noteStudenti = createMap(studenti, note);
 
         index(studenti);
+        exportStudenti(studenti, "studenti_export.csv");
 
         System.out.println("Lista studentilor:");
         for (Student s : studenti) {
@@ -150,5 +151,25 @@ public class Main {
 
     static boolean estePrezent(ArrayList<Student> studenti, Student s) {
         return studenti.contains(s);
+    }
+    static void exportStudenti(ArrayList<Student> studenti, String fisier) {
+        ArrayList<String> linii = new ArrayList<>();
+
+        for (Student s : studenti) {
+            String linie =
+                    (s.numarMatricol == null ? "" : s.numarMatricol) + "," +
+                            s.prenume + "," +
+                            s.nume + "," +
+                            s.formatieDeStudiu;
+
+            linii.add(linie);
+        }
+
+        try {
+            Files.write(Path.of(fisier), linii);
+            System.out.println("Export realizat in fisierul: " + fisier);
+        } catch (IOException e) {
+            System.out.println("Eroare la export: " + e.getMessage());
+        }
     }
 }
