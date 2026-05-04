@@ -8,17 +8,32 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.FileOutputStream;
 
 public class Main {
 
-    public static void main(String[] args) {
-        ArrayList<Student> studenti = citesteStudentiDinCsv("studenti.csv");
-        Map<String, Integer> note = citireNote("Note.csv");
+    // Create a new workbook
+    static XSSFWorkbook workbook = new XSSFWorkbook();
 
+    // Create a sheet
+    static XSSFSheet sheet = workbook.createSheet("Student Details");
+
+    public static void main(String[] args) {
+
+        Importer importer = getImporterFromFile("studenti.csv");
+        
+        ArrayList<Student> studenti = importList(importer);
+
+        Map<String, Integer> note = citireNote("Note.csv");
         Map<Student, Integer> noteStudenti = createMap(studenti, note);
 
         index(studenti);
-        exportStudenti(studenti, "studenti_export.csv");
+
+        exportList(studenti, getExporterToFile("StudentData.csv"));
+        exportList(studenti, getExporterToFile("StudentData.xlsx"));
 
         System.out.println("Lista studentilor:");
         for (Student s : studenti) {
@@ -33,6 +48,61 @@ public class Main {
         } else {
             System.out.println("Studentul NU este prezent in lista.");
         }
+    }
+
+    private static boolean estePrezent(ArrayList<Student> studenti, Student s) {
+        return false;
+    }
+
+    private static String printNota(Map<Student, Integer> noteStudenti, Student s) {
+        return "";
+    }
+
+    private static void index(ArrayList<Student> studenti) {
+    }
+
+    private static Map<Student, Integer> createMap(ArrayList<Student> studenti, Map<String, Integer> note) {
+        return Map.of();
+    }
+
+    private static Map<String, Integer> citireNote(String s) {
+        return Map.of();
+    }
+
+    private static Importer getImporterFromFile(String filename) {
+        String fileExtension = filename.substring(filename.lastIndexOf("."));
+
+        switch (fileExtension) {
+            case ".xlsx":
+                return new ImportFromExcel(filename);
+            case ".csv":
+                return new ImportFromFile(filename);
+            case ".txt":
+                return new ImportFromFile(filename);
+            default:
+                throw new IllegalArgumentException("Unknown file extension: " + fileExtension);
+        }
+    }
+
+    private static Exporter getExporterToFile(String filename) {
+        String fileExtension = filename.substring(filename.lastIndexOf("."));
+
+        switch (fileExtension) {
+            case ".xlsx":
+                return new ExportToExcel(filename);
+            case ".csv":
+                return new ExportToFile(filename);
+            default:
+                throw new IllegalArgumentException("Unknown file extension: " + fileExtension);
+        }
+    }
+
+    private static ArrayList<Student> importList(Importer importer) {
+        return importer.importStudents();
+    }
+
+    private static void exportList(ArrayList<Student> studenti, Exporter exporter) {
+        exporter.export(studenti);
     }
 
     static ArrayList<Student> citesteStudentiDinCsv(String caleFisier) {
@@ -69,107 +139,5 @@ public class Main {
         return studenti;
     }
 
-    static Map<String, Integer> citireNote(String filename) {
-        Map<String, Integer> note = new HashMap<>();
 
-        try {
-            for (String linie : Files.readAllLines(Path.of(filename))) {
-                if (linie.isBlank()) {
-                    continue;
-                }
-
-                String[] campuri = linie.split(",");
-
-                if (campuri.length != 2) {
-                    System.out.println("Linie invalida: " + linie);
-                    continue;
-                }
-
-                String numarMatricol = campuri[0].trim();
-                if (numarMatricol.isEmpty()) {
-                    numarMatricol = null;
-                }
-
-                int nota = Integer.parseInt(campuri[1].trim());
-                note.put(numarMatricol, nota);
-            }
-        } catch (IOException e) {
-            System.out.println("Eroare la citirea fisierului de note: " + e.getMessage());
-        }
-
-        return note;
-    }
-
-    static Map<Student, Integer> createMap(ArrayList<Student> studenti, Map<String, Integer> note) {
-        Map<Student, Integer> noteStudenti = new HashMap<>();
-
-        for (Student student : studenti) {
-            noteStudenti.put(student, nota(note, student));
-        }
-
-        return noteStudenti;
-    }
-
-    static Integer nota(Map<String, Integer> note, Student student) {
-        return note.get(student.numarMatricol);
-    }
-
-    static String printNota(Map<Student, Integer> noteStudenti, Student student) {
-        Integer valoare = noteStudenti.get(student);
-        if (valoare == null) {
-            return "fara nota";
-        }
-        return String.valueOf(valoare);
-    }
-
-    static void index(ArrayList<Student> studenti) {
-        Collections.sort(studenti, new Comparator<Student>() {
-            @Override
-            public int compare(Student s1, Student s2) {
-                if (s1.formatieDeStudiu.equals(s2.formatieDeStudiu)) {
-                    if (s1.nume.equals(s2.nume)) {
-                        if (s1.prenume.equals(s2.prenume)) {
-                            if (s1.numarMatricol == null && s2.numarMatricol == null) {
-                                return 0;
-                            }
-                            if (s1.numarMatricol == null) {
-                                return -1;
-                            }
-                            if (s2.numarMatricol == null) {
-                                return 1;
-                            }
-                            return s1.numarMatricol.compareTo(s2.numarMatricol);
-                        }
-                        return s1.prenume.compareTo(s2.prenume);
-                    }
-                    return s1.nume.compareTo(s2.nume);
-                }
-                return s1.formatieDeStudiu.compareTo(s2.formatieDeStudiu);
-            }
-        });
-    }
-
-    static boolean estePrezent(ArrayList<Student> studenti, Student s) {
-        return studenti.contains(s);
-    }
-    static void exportStudenti(ArrayList<Student> studenti, String fisier) {
-        ArrayList<String> linii = new ArrayList<>();
-
-        for (Student s : studenti) {
-            String linie =
-                    (s.numarMatricol == null ? "" : s.numarMatricol) + "," +
-                            s.prenume + "," +
-                            s.nume + "," +
-                            s.formatieDeStudiu;
-
-            linii.add(linie);
-        }
-
-        try {
-            Files.write(Path.of(fisier), linii);
-            System.out.println("Export realizat in fisierul: " + fisier);
-        } catch (IOException e) {
-            System.out.println("Eroare la export: " + e.getMessage());
-        }
-    }
 }
