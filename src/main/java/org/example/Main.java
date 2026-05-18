@@ -24,6 +24,7 @@ public class Main {
 
         rezolvaCerinteStream(studenti);
 
+
         exportList(studenti, getExporterToFile("StudentData.csv"));
         exportList(studenti, getExporterToFile("StudentData.xlsx"));
 

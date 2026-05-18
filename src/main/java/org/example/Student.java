@@ -9,6 +9,7 @@ public class Student {
     public String formatieDeStudiu;
     public Integer nota;
 
+
     public Student(String numarMatricol, String prenume, String nume, String formatieDeStudiu) {
         this.numarMatricol = numarMatricol;
         this.prenume = prenume;

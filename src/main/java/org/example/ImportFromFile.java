@@ -8,6 +8,7 @@ import java.util.ArrayList;
 public class ImportFromFile implements Importer {
     private final String filename;
 
+
     public ImportFromFile(String filename) {
         this.filename = filename;
     }
