@@ -24,13 +24,14 @@ public class Main {
     public static void main(String[] args) {
 
         Importer importer = getImporterFromFile("studenti.csv");
-        
+
         ArrayList<Student> studenti = importList(importer);
 
         Map<String, Integer> note = citireNote("Note.csv");
         Map<Student, Integer> noteStudenti = createMap(studenti, note);
 
         index(studenti);
+
 
         exportList(studenti, getExporterToFile("StudentData.csv"));
         exportList(studenti, getExporterToFile("StudentData.xlsx"));
