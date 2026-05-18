@@ -1,11 +1,12 @@
 package org.example;
 
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class ExportToFile implements Exporter {
+
     private final String filename;
 
     public ExportToFile(String filename) {
@@ -14,23 +15,36 @@ public class ExportToFile implements Exporter {
 
     @Override
     public void export(ArrayList<Student> studenti) {
-        ArrayList<String> linii = new ArrayList<>();
+        try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
 
-        for (Student s : studenti) {
-            String linie =
-                    (s.numarMatricol == null ? "" : s.numarMatricol) + "," +
-                            s.prenume + "," +
-                            s.nume + "," +
-                            s.formatieDeStudiu;
+            writer.println("Numar matricol,Prenume,Nume,Formatie de studiu,Nota");
 
-            linii.add(linie);
-        }
+            for (Student s : studenti) {
+                writer.println(
+                        safe(s.numarMatricol) + "," +
+                                safe(s.prenume) + "," +
+                                safe(s.nume) + "," +
+                                safe(s.formatieDeStudiu) + "," +
+                                safe(s.afisareNota())
+                );
+            }
 
-        try {
-            Files.write(Path.of(filename), linii);
-            System.out.println("Export realizat in fisierul: " + filename);
+            System.out.println("Export CSV realizat: " + filename);
+
         } catch (IOException e) {
-            System.out.println("Eroare la export: " + e.getMessage());
+            System.out.println("Eroare la exportul CSV: " + e.getMessage());
         }
+    }
+
+    private String safe(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        if (text.contains(",") || text.contains("\"")) {
+            return "\"" + text.replace("\"", "\"\"") + "\"";
+        }
+
+        return text;
     }
 }

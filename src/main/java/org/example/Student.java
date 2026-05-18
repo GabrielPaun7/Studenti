@@ -3,20 +3,21 @@ package org.example;
 import java.util.Objects;
 
 public class Student {
-    final String numarMatricol;
-    final String prenume;
-    final String nume;
-    final String formatieDeStudiu;
-    int nota;
+    public String numarMatricol;
+    public String prenume;
+    public String nume;
+    public String formatieDeStudiu;
+    public Integer nota;
 
     public Student(String numarMatricol, String prenume, String nume, String formatieDeStudiu) {
         this.numarMatricol = numarMatricol;
         this.prenume = prenume;
         this.nume = nume;
         this.formatieDeStudiu = formatieDeStudiu;
+        this.nota = null;
     }
 
-    public Student(String numarMatricol, String prenume, String nume, String formatieDeStudiu, int nota) {
+    public Student(String numarMatricol, String prenume, String nume, String formatieDeStudiu, Integer nota) {
         this.numarMatricol = numarMatricol;
         this.prenume = prenume;
         this.nume = nume;
@@ -24,19 +25,39 @@ public class Student {
         this.nota = nota;
     }
 
+    public String afisareNota() {
+        if (nota == null) {
+            return "fara nota";
+        }
+
+        return nota.toString();
+    }
+
     @Override
     public String toString() {
-        return numarMatricol + " " + prenume + " " + nume + " " + formatieDeStudiu;
+        return "Student{" +
+                "numarMatricol='" + numarMatricol + '\'' +
+                ", prenume='" + prenume + '\'' +
+                ", nume='" + nume + '\'' +
+                ", formatieDeStudiu='" + formatieDeStudiu + '\'' +
+                ", nota=" + afisareNota() +
+                '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Student student)) return false;
-        return Objects.equals(prenume, student.prenume)
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof Student student)) {
+            return false;
+        }
+
+        return Objects.equals(numarMatricol, student.numarMatricol)
+                && Objects.equals(prenume, student.prenume)
                 && Objects.equals(nume, student.nume)
-                && Objects.equals(formatieDeStudiu, student.formatieDeStudiu)
-                && Objects.equals(numarMatricol, student.numarMatricol);
+                && Objects.equals(formatieDeStudiu, student.formatieDeStudiu);
     }
 
     @Override

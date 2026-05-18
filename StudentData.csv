@@ -1,8 +1,9 @@
-123,Gabi,Paun,C22/1
-124,Edi,Negrita,ISM22/1
-125,Mihai,Oliu,TDDH221/1
-126,Ioana,Opris,C22/1
-67,Mircea,Stan,I73/9
-129,Andrei,Balasa,TI22/1
-568,Alex,Oprea,TDDH221/1
-001,Ana,Olteanu,TDDH221/1
+Numar matricol,Prenume,Nume,Formatie de studiu,Nota
+123,Gabi,Paun,C22/1,7
+124,Edi,Negrita,ISM22/1,10
+125,Mihai,Oliu,TDDH221/1,5
+126,Ioana,Opris,C22/1,9
+67,Mircea,Stan,I73/9,fara nota
+129,Andrei,Balasa,TI22/1,2
+568,Alex,Oprea,TDDH221/1,6
+001,Ana,Olteanu,TDDH221/1,3
