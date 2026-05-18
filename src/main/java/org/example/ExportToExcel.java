@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-
 public class ExportToExcel implements Exporter {
 
     private final String filename;
@@ -25,7 +24,6 @@ public class ExportToExcel implements Exporter {
         try (XSSFWorkbook workbook = new XSSFWorkbook()) {
 
             scrieStudenti(workbook, studenti);
-            scrieHistogramaGenerala(workbook, studenti);
             scrieSemigrupe(workbook, studenti);
             scrieStatisticiSemigrupe(workbook, studenti);
 
@@ -50,53 +48,25 @@ public class ExportToExcel implements Exporter {
         header.createCell(3).setCellValue("Formatie de studiu");
         header.createCell(4).setCellValue("Nota");
 
+        Catalog catalog = Catalog.getInstance();
+
         for (int i = 0; i < studenti.size(); i++) {
             Student s = studenti.get(i);
-
             Row row = sheet.createRow(i + 1);
+
             row.createCell(0).setCellValue(text(s.numarMatricol));
             row.createCell(1).setCellValue(text(s.prenume));
             row.createCell(2).setCellValue(text(s.nume));
             row.createCell(3).setCellValue(text(s.formatieDeStudiu));
 
-            if (s.nota != null) {
-                row.createCell(4).setCellValue(s.nota);
+            // Luăm nota din Catalog. Dacă e -1, înseamnă că nu are notă.
+            int nota = catalog.getNotaStudent(s.numarMatricol);
+            if (nota != -1) {
+                row.createCell(4).setCellValue(nota);
             } else {
-                row.createCell(4).setCellValue("fara nota");
+                row.createCell(4).setCellValue("-");
             }
         }
-
-        autosize(sheet, 4);
-    }
-
-    private void scrieHistogramaGenerala(XSSFWorkbook workbook, ArrayList<Student> studenti) {
-        XSSFSheet sheet = workbook.createSheet("Histograma note");
-
-        Row header = sheet.createRow(0);
-        header.createCell(0).setCellValue("Nota");
-        header.createCell(1).setCellValue("Numar studenti");
-        header.createCell(2).setCellValue("Histograma");
-
-        Map<Integer, Long> histograma = calculeazaHistograma(studenti);
-
-        int rand = 1;
-
-        for (Map.Entry<Integer, Long> entry : histograma.entrySet()) {
-            Row row = sheet.createRow(rand++);
-
-            int nota = entry.getKey();
-            long numarStudenti = entry.getValue();
-
-            row.createCell(0).setCellValue(nota);
-            row.createCell(1).setCellValue(numarStudenti);
-            row.createCell(2).setCellValue("*".repeat((int) numarStudenti));
-        }
-
-        Row mediaRow = sheet.createRow(rand + 1);
-        mediaRow.createCell(0).setCellValue("Media generala");
-        mediaRow.createCell(1).setCellValue(calculeazaMedia(studenti));
-
-        autosize(sheet, 2);
     }
 
     private void scrieSemigrupe(XSSFWorkbook workbook, ArrayList<Student> studenti) {
@@ -105,12 +75,7 @@ public class ExportToExcel implements Exporter {
         ArrayList<Student> sortati = studenti.stream()
                 .sorted((s1, s2) -> {
                     int cmp = text(s1.nume).compareToIgnoreCase(text(s2.nume));
-
-                    if (cmp == 0) {
-                        return text(s1.prenume).compareToIgnoreCase(text(s2.prenume));
-                    }
-
-                    return cmp;
+                    return cmp == 0 ? text(s1.prenume).compareToIgnoreCase(text(s2.prenume)) : cmp;
                 })
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -124,30 +89,25 @@ public class ExportToExcel implements Exporter {
         header.createCell(4).setCellValue("Formatie de studiu");
         header.createCell(5).setCellValue("Nota");
 
+        Catalog catalog = Catalog.getInstance();
+
         for (int i = 0; i < sortati.size(); i++) {
             Student s = sortati.get(i);
-
             Row row = sheet.createRow(i + 1);
 
-            if (i < jumatate) {
-                row.createCell(0).setCellValue("Semigrupa 1");
-            } else {
-                row.createCell(0).setCellValue("Semigrupa 2");
-            }
-
+            row.createCell(0).setCellValue(i < jumatate ? "Semigrupa 1" : "Semigrupa 2");
             row.createCell(1).setCellValue(text(s.numarMatricol));
             row.createCell(2).setCellValue(text(s.prenume));
             row.createCell(3).setCellValue(text(s.nume));
             row.createCell(4).setCellValue(text(s.formatieDeStudiu));
 
-            if (s.nota != null) {
-                row.createCell(5).setCellValue(s.nota);
+            int nota = catalog.getNotaStudent(s.numarMatricol);
+            if (nota != -1) {
+                row.createCell(5).setCellValue(nota);
             } else {
-                row.createCell(5).setCellValue("fara nota");
+                row.createCell(5).setCellValue("-");
             }
         }
-
-        autosize(sheet, 5);
     }
 
     private void scrieStatisticiSemigrupe(XSSFWorkbook workbook, ArrayList<Student> studenti) {
@@ -156,12 +116,7 @@ public class ExportToExcel implements Exporter {
         ArrayList<Student> sortati = studenti.stream()
                 .sorted((s1, s2) -> {
                     int cmp = text(s1.nume).compareToIgnoreCase(text(s2.nume));
-
-                    if (cmp == 0) {
-                        return text(s1.prenume).compareToIgnoreCase(text(s2.prenume));
-                    }
-
-                    return cmp;
+                    return cmp == 0 ? text(s1.prenume).compareToIgnoreCase(text(s2.prenume)) : cmp;
                 })
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -176,69 +131,49 @@ public class ExportToExcel implements Exporter {
                 .collect(Collectors.toCollection(ArrayList::new));
 
         int rand = 0;
-
         rand = scrieStatisticaPentruSemigrupa(sheet, rand, "Semigrupa 1", semigrupa1);
         rand += 2;
         scrieStatisticaPentruSemigrupa(sheet, rand, "Semigrupa 2", semigrupa2);
-
-        autosize(sheet, 3);
     }
 
-    private int scrieStatisticaPentruSemigrupa(XSSFSheet sheet, int rand, String numeSemigrupa, ArrayList<Student> studenti) {
+    private int scrieStatisticaPentruSemigrupa(XSSFSheet sheet, int rand, String numeSemigrupa, ArrayList<Student> listaStudenti) {
+        Catalog catalog = Catalog.getInstance();
+
         Row titlu = sheet.createRow(rand++);
         titlu.createCell(0).setCellValue(numeSemigrupa);
 
-        Row media = sheet.createRow(rand++);
-        media.createCell(0).setCellValue("Media");
-        media.createCell(1).setCellValue(calculeazaMedia(studenti));
+        // Calculăm media semigrupei
+        double media = listaStudenti.stream()
+                .mapToInt(s -> catalog.getNotaStudent(s.numarMatricol))
+                .filter(nota -> nota != -1)
+                .average()
+                .orElse(0);
+
+        Row mediaRow = sheet.createRow(rand++);
+        mediaRow.createCell(0).setCellValue("Media");
+        mediaRow.createCell(1).setCellValue(media);
 
         Row header = sheet.createRow(rand++);
         header.createCell(0).setCellValue("Nota");
         header.createCell(1).setCellValue("Numar studenti");
-        header.createCell(2).setCellValue("Histograma");
 
-        Map<Integer, Long> histograma = calculeazaHistograma(studenti);
+        // Generăm histograma pentru semigrupă
+        Map<Integer, Long> histograma = listaStudenti.stream()
+                .mapToInt(s -> catalog.getNotaStudent(s.numarMatricol))
+                .filter(nota -> nota != -1)
+                .boxed()
+                .collect(Collectors.groupingBy(nota -> nota, TreeMap::new, Collectors.counting()));
 
         for (Map.Entry<Integer, Long> entry : histograma.entrySet()) {
             Row row = sheet.createRow(rand++);
-
             row.createCell(0).setCellValue(entry.getKey());
             row.createCell(1).setCellValue(entry.getValue());
-            row.createCell(2).setCellValue("*".repeat(entry.getValue().intValue()));
         }
 
         return rand;
     }
 
-    private Map<Integer, Long> calculeazaHistograma(ArrayList<Student> studenti) {
-        return studenti.stream()
-                .filter(s -> s.nota != null)
-                .collect(Collectors.groupingBy(
-                        s -> s.nota,
-                        TreeMap::new,
-                        Collectors.counting()
-                ));
-    }
-
-    private double calculeazaMedia(ArrayList<Student> studenti) {
-        return studenti.stream()
-                .filter(s -> s.nota != null)
-                .mapToInt(s -> s.nota)
-                .average()
-                .orElse(0);
-    }
-
     private String text(String valoare) {
-        if (valoare == null) {
-            return "";
-        }
-
-        return valoare.trim();
-    }
-
-    private void autosize(XSSFSheet sheet, int ultimaColoana) {
-        for (int i = 0; i <= ultimaColoana; i++) {
-            sheet.autoSizeColumn(i);
-        }
+        return valoare == null ? "" : valoare.trim();
     }
 }

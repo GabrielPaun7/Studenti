@@ -25,8 +25,8 @@ public class ExportToFile implements Exporter {
                         safe(s.numarMatricol) + "," +
                                 safe(s.prenume) + "," +
                                 safe(s.nume) + "," +
-                                safe(s.formatieDeStudiu) + "," +
-                                safe(s.afisareNota())
+                                safe(s.formatieDeStudiu)
+
                 );
             }
 
